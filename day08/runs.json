@@ -1,0 +1,200 @@
+{
+  "model": "deepseek-flash",
+  "context_limit": 1048576,
+  "price": "off-peak deepseek-flash: hit $0.003, miss $0.15, out $0.60 за 1M",
+  "short": {
+    "rows": [
+      {
+        "question": "Сколько будет 15 долларов в рублях? Напиши только итог.",
+        "chars": 55,
+        "answer": "1350 ₽",
+        "error": "",
+        "trace": [
+          "Шаг 1: convert_usd_to_rub({\"usd\": 15}) -> 15.0 USD = 1350 RUB по курсу 90",
+          "Шаг 2: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 506,
+            "answer_tokens": 42,
+            "history_tokens": 506,
+            "cache_hit_tokens": 0,
+            "cache_miss_tokens": 506,
+            "cost_usd": 0.0001011,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "request_tokens": 574,
+            "answer_tokens": 4,
+            "history_tokens": 1080,
+            "cache_hit_tokens": 384,
+            "cache_miss_tokens": 190,
+            "cost_usd": 3.2052e-05,
+            "finish_reason": "stop"
+          }
+        ]
+      }
+    ],
+    "totals": {
+      "calls": 2,
+      "request_tokens": 1080,
+      "answer_tokens": 46,
+      "history_tokens": 1080,
+      "last_request_tokens": 574,
+      "cost_usd": 0.000133152
+    }
+  },
+  "long": {
+    "rows": [
+      {
+        "question": "Меня зовут Максим. Секретное число 42. Ответь одним словом: запомнил.",
+        "chars": 69,
+        "answer": "Запомнил.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 515,
+            "answer_tokens": 5,
+            "history_tokens": 515,
+            "cache_hit_tokens": 256,
+            "cache_miss_tokens": 259,
+            "cost_usd": 4.261799999999999e-05,
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      {
+        "question": "Строка журнала 1. Строка журнала 1. Строка журнала 1. Строка журнала 1. Строк...",
+        "chars": 7229,
+        "answer": "Принято.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 3733,
+            "answer_tokens": 4,
+            "history_tokens": 4248,
+            "cache_hit_tokens": 512,
+            "cache_miss_tokens": 3221,
+            "cost_usd": 0.00048708599999999996,
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      {
+        "question": "Строка журнала 2. Строка журнала 2. Строка журнала 2. Строка журнала 2. Строк...",
+        "chars": 7229,
+        "answer": "Принято.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 6950,
+            "answer_tokens": 4,
+            "history_tokens": 11198,
+            "cache_hit_tokens": 3712,
+            "cache_miss_tokens": 3238,
+            "cost_usd": 0.0004992359999999999,
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      {
+        "question": "Строка журнала 3. Строка журнала 3. Строка журнала 3. Строка журнала 3. Строк...",
+        "chars": 7229,
+        "answer": "Принято.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 10167,
+            "answer_tokens": 4,
+            "history_tokens": 21365,
+            "cache_hit_tokens": 6912,
+            "cache_miss_tokens": 3255,
+            "cost_usd": 0.000511386,
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      {
+        "question": "Строка журнала 4. Строка журнала 4. Строка журнала 4. Строка журнала 4. Строк...",
+        "chars": 7229,
+        "answer": "Принято.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 13384,
+            "answer_tokens": 4,
+            "history_tokens": 34749,
+            "cache_hit_tokens": 10112,
+            "cache_miss_tokens": 3272,
+            "cost_usd": 0.0005235359999999999,
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      {
+        "question": "Как меня зовут и какое секретное число? Ответь одной короткой фразой.",
+        "chars": 69,
+        "answer": "Максим, 42.",
+        "error": "",
+        "trace": [
+          "Шаг 1: ответ без инструментов"
+        ],
+        "calls": [
+          {
+            "request_tokens": 13414,
+            "answer_tokens": 8,
+            "history_tokens": 48163,
+            "cache_hit_tokens": 13184,
+            "cache_miss_tokens": 230,
+            "cost_usd": 7.885199999999998e-05,
+            "finish_reason": "stop"
+          }
+        ]
+      }
+    ],
+    "totals": {
+      "calls": 6,
+      "request_tokens": 48163,
+      "answer_tokens": 29,
+      "history_tokens": 48163,
+      "last_request_tokens": 13414,
+      "cost_usd": 0.0021427139999999996
+    }
+  },
+  "overflow": {
+    "status": 400,
+    "detail": "{\"error\":{\"message\":\"This model's maximum context length is 1048576 tokens. However, you requested 1048642 tokens (1048626 in the messages, 16 in the completion). Please reduce the length of the messages or completion. (request_id: b416512f-fe9f-45f8-a3f9-f1575b8e2130)\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"invalid_request_error\"}}",
+    "parsed": {
+      "maximum": 1048576,
+      "requested": 1048642,
+      "messages": 1048626,
+      "completion": 16
+    },
+    "repeats": 1048139,
+    "estimated_tokens": 1048626,
+    "rate": 1.0,
+    "probe_small": 2487,
+    "probe_large": 4487,
+    "usage": {
+      "request_tokens": 0,
+      "answer_tokens": 0
+    },
+    "balance_before": "4.93",
+    "balance_after": "4.93"
+  }
+}

@@ -1,0 +1,7 @@
+history.json
+sliding-history.json
+facts-history.json
+summary-history.json
+branch-history.json
+ui-*-history.json
+.env

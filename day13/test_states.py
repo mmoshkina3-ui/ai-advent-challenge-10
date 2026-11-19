@@ -117,6 +117,7 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(parse_tags("ПРОВЕРКА: ОК")["verdict"], "ок")
         self.assertEqual(parse_tags("ПРОВЕРКА: ошибка, нет пробелов")["verdict"], "ошибка")
         self.assertEqual(parse_plan("План:\n1. a\n2) b\nтекст"), ["a", "b"])
+        self.assertEqual(parse_plan("Нужно:\n1. я предлагаю\n2. вы утверждаете\nПлан:\n1. a\n2. b\n3. c"), ["a", "b", "c"])
 
 
 class AgentTest(unittest.TestCase):

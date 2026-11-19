@@ -7,6 +7,7 @@
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -82,9 +83,12 @@ def load_settings() -> tuple[str, str]:
                 continue
             name, value = line.split("=", 1)
             env.setdefault(name.strip(), value.strip().strip('"').strip("'"))
+    for name in ("DEEPSEEK_API_KEY", "LLM_MODEL"):
+        if os.environ.get(name):
+            env[name] = os.environ[name]
     api_key = env.get("DEEPSEEK_API_KEY", "")
     if not api_key or api_key == "сюда_ключ":
-        raise SystemExit("Нет ключа. Положи DEEPSEEK_API_KEY в day02/.env или day13/.env.")
+        raise SystemExit("Нет ключа. Задай DEEPSEEK_API_KEY в окружении или положи в day02/.env или day13/.env.")
     return api_key, env.get("LLM_MODEL") or DEFAULT_MODEL
 
 
@@ -267,7 +271,13 @@ class TaskState:
 
 
 def parse_plan(text: str) -> list[str]:
-    return [match.strip() for match in re.findall(r"^\s*\d+[.)]\s+(.+)$", text, flags=re.MULTILINE)]
+    """Последний нумерованный список, который начинается с 1."""
+    lists: list[list[str]] = []
+    for number, item in re.findall(r"^\s*(\d+)[.)]\s+(.+)$", text, flags=re.MULTILINE):
+        if number == "1" or not lists:
+            lists.append([])
+        lists[-1].append(item.strip())
+    return lists[-1] if lists else []
 
 
 def parse_tags(text: str) -> dict:

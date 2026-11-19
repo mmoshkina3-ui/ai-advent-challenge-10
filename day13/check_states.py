@@ -152,11 +152,15 @@ def main() -> None:
     resumed = run.say("продолжение после перезапуска", "Продолжай.", stage="execution")
     resumed["continued"] = state().step > before or mentions_task(resumed["reply"])
     for _ in range(len(state().plan) + 3):
-        if state().step >= len(state().plan):
+        if state().step >= len(state().plan) or state().stage != "execution":
             break
-        run.say("шаг", "Выполни текущий шаг.", stage="execution")
-    run.say("execution → done после шагов", "/go done", stage="execution", refused=True, kind="forbidden")
-    run.move("перейти к проверке", "Все шаги выполнены. Переходи к проверке.", "validation")
+        last_step = run.say("шаг", "Выполни текущий шаг.")
+    if state().stage == "execution":
+        run.say("execution → done после шагов", "/go done", stage="execution", refused=True, kind="forbidden")
+        run.move("перейти к проверке", "Все шаги выполнены. Переходи к проверке.", "validation")
+    else:
+        last_step["assistant_moved"] = last_step["stage_after"] == "validation"
+        last_step["label"] = "последний шаг, модель сама перешла к проверке"
 
     run.say("validation → done без проверки", "/go done", stage="validation", refused=True, kind="forbidden")
     run.pause_cycle("validation")

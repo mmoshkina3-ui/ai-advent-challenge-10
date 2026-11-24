@@ -2,53 +2,27 @@
   "model": "deepseek-flash",
   "connection": {
     "ok": true,
-    "server": "order-tracker",
+    "server": "github-repo",
     "command": "/workspace/.venv-mcp/bin/python",
     "args": [
       "/workspace/repos/ai-advent-challenge-10/day17/server.py"
     ],
+    "api": "https://api.github.com",
+    "repository": "mmoshkina3-ui/ai-advent-challenge-10",
     "tools": [
-      "get_order",
-      "list_orders"
+      "repo_info",
+      "list_commits",
+      "get_file"
     ],
-    "tool_count": 2,
+    "tool_count": 3,
     "schemas": [
       {
-        "name": "get_order",
-        "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+        "name": "repo_info",
+        "description": "Возвращает сведения о репозитории GitHub: полное имя, описание, ветку по умолчанию, число открытых issues и ссылку. По умолчанию это mmoshkina3-ui/ai-advent-challenge-10.",
         "parameters": {
           "type": "object",
           "properties": {
-            "order_id": {
-              "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
-              "title": "Order Id",
-              "type": "string"
-            }
-          },
-          "required": [
-            "order_id"
-          ],
-          "title": "get_orderArguments"
-        },
-        "required": [
-          "order_id"
-        ],
-        "properties": {
-          "order_id": {
-            "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
-            "title": "Order Id",
-            "type": "string"
-          }
-        },
-        "source": "mcp"
-      },
-      {
-        "name": "list_orders",
-        "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "status": {
+            "owner": {
               "anyOf": [
                 {
                   "type": "string"
@@ -58,15 +32,28 @@
                 }
               ],
               "default": null,
-              "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
-              "title": "Status"
+              "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+              "title": "Owner"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+              "title": "Repo"
             }
           },
-          "title": "list_ordersArguments"
+          "title": "repo_infoArguments"
         },
         "required": [],
         "properties": {
-          "status": {
+          "owner": {
             "anyOf": [
               {
                 "type": "string"
@@ -76,102 +63,362 @@
               }
             ],
             "default": null,
-            "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
-            "title": "Status"
+            "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+            "title": "Owner"
+          },
+          "repo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+            "title": "Repo"
+          }
+        },
+        "source": "mcp"
+      },
+      {
+        "name": "list_commits",
+        "description": "Возвращает последние коммиты репозитория: короткий sha, сообщение, автор и дата. Можно ограничить число и отфильтровать по пути файла или папки.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 5,
+              "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+              "title": "Limit",
+              "type": "integer"
+            },
+            "path": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Необязательный фильтр: путь файла или папки, например day16.",
+              "title": "Path"
+            },
+            "ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+              "title": "Ref"
+            },
+            "owner": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+              "title": "Owner"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+              "title": "Repo"
+            }
+          },
+          "title": "list_commitsArguments"
+        },
+        "required": [],
+        "properties": {
+          "limit": {
+            "default": 5,
+            "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Необязательный фильтр: путь файла или папки, например day16.",
+            "title": "Path"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+            "title": "Ref"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+            "title": "Owner"
+          },
+          "repo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+            "title": "Repo"
+          }
+        },
+        "source": "mcp"
+      },
+      {
+        "name": "get_file",
+        "description": "Читает файл из репозитория по пути, например day16/report.md. Если путь указывает на папку, возвращает список элементов. Длинный файл обрезается. Не выдумывай содержимое — сначала вызови этот инструмент.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+              "title": "Path",
+              "type": "string"
+            },
+            "ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+              "title": "Ref"
+            },
+            "owner": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+              "title": "Owner"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+              "title": "Repo"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "title": "get_fileArguments"
+        },
+        "required": [
+          "path"
+        ],
+        "properties": {
+          "path": {
+            "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+            "title": "Path",
+            "type": "string"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+            "title": "Ref"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+            "title": "Owner"
+          },
+          "repo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+            "title": "Repo"
           }
         },
         "source": "mcp"
       }
     ]
   },
-  "direct_call": {
-    "tool": "get_order",
-    "arguments": {
-      "order_id": "ORD-1001"
-    },
-    "result": {
-      "order": {
-        "id": "ORD-1001",
-        "customer": "Максим",
-        "status": "оплачен",
-        "items": [
+  "direct_calls": {
+    "list_commits": {
+      "arguments": {
+        "limit": 3
+      },
+      "result": {
+        "owner": "mmoshkina3-ui",
+        "repo": "ai-advent-challenge-10",
+        "ref": null,
+        "path": null,
+        "count": 3,
+        "commits": [
           {
-            "title": "Позиции заказа в магазине",
-            "qty": 17,
-            "price": 23
+            "sha": "192eb47",
+            "sha_full": "192eb47fa0fe5c03e08126ee7f9a7da76c842865",
+            "message": "Add the day 17 agent with our own MCP server around a local order API.",
+            "author": "MAIN\\moshkin",
+            "date": "2026-11-24T11:19:21Z",
+            "html_url": "https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/192eb47fa0fe5c03e08126ee7f9a7da76c842865"
+          },
+          {
+            "sha": "59b435d",
+            "sha_full": "59b435db95d2939faaab3b604684faf62042d644",
+            "message": "Add the day 16 agent with tools from a public MCP server.",
+            "author": "MAIN\\moshkin",
+            "date": "2026-11-23T13:16:36Z",
+            "html_url": "https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/59b435db95d2939faaab3b604684faf62042d644"
+          },
+          {
+            "sha": "5f0aeb9",
+            "sha_full": "5f0aeb9b3ba8e59f0650789280e77c549379588d",
+            "message": "Add the day 15 agent with memory updates and conflict resolution.",
+            "author": "MAIN\\moshkin",
+            "date": "2026-11-22T15:12:09Z",
+            "html_url": "https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/5f0aeb9b3ba8e59f0650789280e77c549379588d"
           }
-        ],
-        "delivery": 8,
-        "total": 399,
-        "currency": "RUB",
-        "created": "2026-11-20"
-      }
+        ]
+      },
+      "ok": true
     },
-    "ok": true
+    "get_file": {
+      "arguments": {
+        "path": "day16/report.md"
+      },
+      "ok": true,
+      "path": "day16/report.md",
+      "type": "file",
+      "size": 8501,
+      "truncated": false,
+      "needles": [
+        "read_text_file",
+        "list_directory",
+        "calculate",
+        "MCP"
+      ]
+    }
   },
-  "agent": {
-    "input": "Какой статус у заказа ORD-1001 и какая у него сумма? Не выдумывай данные, возьми их инструментом трекера.",
+  "commits_task": {
+    "input": "Что делали в последних трёх коммитах репозитория? Не выдумывай sha и сообщения, возьми их инструментом.",
     "trace": [
-      "Шаг 1: [mcp] get_order({\"order_id\": \"ORD-1001\"}) -> {\n  \"order\": {\n    \"id\": \"ORD-1001\",\n    \"customer\": \"Максим\",\n    \"status\": \"оплачен\",\n    \"items\": [\n      {\n        \"title\": \"Позиции заказа в магазине\",\n        \"qty\": 17,\n        \"price\": 23\n      }\n    ],\n    \"delivery\": 8,\n    \"total\": 399,\n    \"currency\": \"RUB\",\n    \"created\": \"2026-11-20\"\n  }\n}",
+      "Шаг 1: [mcp] list_commits({\"limit\": 3}) -> {\n  \"owner\": \"mmoshkina3-ui\",\n  \"repo\": \"ai-advent-challenge-10\",\n  \"ref\": null,\n  \"path\": null,\n  \"count\": 3,\n  \"commits\": [\n    {\n      \"sha\": \"192eb47\",\n      \"sha_full\": \"192eb47fa0fe5c03e08126ee7f9a7da76c842865\",\n      \"message\": \"Add the day 17 agent with our own MCP server around a local order API.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-24T11:19:21Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/192eb47fa0fe5c03e08126ee7f9a7da76c842865\"\n    },\n    {\n      \"sha\": \"59b435d\",\n      \"sha_full\": \"59b435db95d2939faaab3b604684faf62042d644\",\n      \"message\": \"Add the day 16 agent with tools from a public MCP server.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-23T13:16:36Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/59b435db95d2939faaab3b604684faf62042d644\"\n    },\n    {\n      \"sha\": \"5f0aeb9\",\n      \"sha_full\": \"5f0aeb9b3ba8e59f0650789280e77c549379588d\",\n      \"message\": \"Add the day 15 agent with memory updates and conflict resolution.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-22T15:12:09Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/5f0aeb9b3ba8e59f0650789280e77c549379588d\"\n    }\n  ]\n}",
       "Шаг 2: ответ без инструментов"
     ],
     "calls": [
       {
         "step": 1,
-        "name": "get_order",
+        "name": "list_commits",
         "source": "mcp",
-        "arguments": "{\"order_id\": \"ORD-1001\"}",
-        "result": "{\n  \"order\": {\n    \"id\": \"ORD-1001\",\n    \"customer\": \"Максим\",\n    \"status\": \"оплачен\",\n    \"items\": [\n      {\n        \"title\": \"Позиции заказа в магазине\",\n        \"qty\": 17,\n        \"price\": 23\n      }\n    ],\n    \"delivery\": 8,\n    \"total\": 399,\n    \"currency\": \"RUB\",\n    \"created\": \"2026-11-20\"\n  }\n}"
+        "arguments": "{\"limit\": 3}",
+        "result": "{\n  \"owner\": \"mmoshkina3-ui\",\n  \"repo\": \"ai-advent-challenge-10\",\n  \"ref\": null,\n  \"path\": null,\n  \"count\": 3,\n  \"commits\": [\n    {\n      \"sha\": \"192eb47\",\n      \"sha_full\": \"192eb47fa0fe5c03e08126ee7f9a7da76c842865\",\n      \"message\": \"Add the day 17 agent with our own MCP server around a local order API.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-24T11:19:21Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/192eb47fa0fe5c03e08126ee7f9a7da76c842865\"\n    },\n    {\n      \"sha\": \"59b435d\",\n      \"sha_full\": \"59b435db95d2939faaab3b604684faf62042d644\",\n      \"message\": \"Add the day 16 agent with tools from a public MCP server.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-23T13:16:36Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/59b435db95d2939faaab3b604684faf62042d644\"\n    },\n    {\n      \"sha\": \"5f0aeb9\",\n      \"sha_full\": \"5f0aeb9b3ba8e59f0650789280e77c549379588d\",\n      \"message\": \"Add the day 15 agent with memory updates and conflict resolution.\",\n      \"author\": \"MAIN\\\\moshkin\",\n      \"date\": \"2026-11-22T15:12:09Z\",\n      \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/commit/5f0aeb9b3ba8e59f0650789280e77c549379588d\"\n    }\n  ]\n}"
       }
     ],
-    "answer": "Заказ ORD-1001 (покупатель Максим):\n\n- **Статус:** оплачен\n- **Сумма:** 399 RUB (включая доставку 8 RUB)\n- **Состав:** 17 позиций по 23 RUB\n- **Создан:** 2026-11-20",
-    "chose_get_order": true,
-    "correct_args": true,
-    "tool_returned_order": true,
-    "answer_uses_result": true,
+    "answer": "Вот последние три коммита репозитория `mmoshkina3-ui/ai-advent-challenge-10` (автор всех — MAIN\\moshkin):\n\n1. **192eb47** (`192eb47fa0fe5c03e08126ee7f9a7da76c842865`) — 24.11.2026\n   «Add the day 17 agent with our own MCP server around a local order API.»\n   — добавлен агент дня 17 со своим MCP-сервером вокруг локального API заказов.\n\n2. **59b435d** (`59b435db95d2939faaab3b604684faf62042d644`) — 23.11.2026\n   «Add the day 16 agent with tools from a public MCP server.»\n   — агент дня 16 с инструментами из публичного MCP-сервера.\n\n3. **5f0aeb9** (`5f0aeb9b3ba8e59f0650789280e77c549379588d`) — 22.11.2026\n   «Add the day 15 agent with memory updates and conflict resolution.»\n   — агент дня 15 с обновлением памяти и разрешением конфликтов.\n\nОбщая картина: три дня подряд (15 → 17) добавлялись агенты, постепенно переходя от памяти/конфликтов к работе с MCP-серверами — сначала публичным, затем собственным. Если нужно, могу посмотреть, какие файлы менялись в каждом из этих коммитов.",
+    "tools_called": [
+      "list_commits"
+    ],
     "request_body": {
       "model": "deepseek-flash",
       "messages": [
         {
           "role": "system",
-          "content": "Ты агент с инструментами своего MCP-сервера «трекер заказов». Если нужны данные о заказе, вызови инструмент. Не выдумывай статус, сумму и состав заказа. После результата инструмента ответь пользователю обычным текстом и опирайся только на него. Доступные инструменты: get_order, list_orders."
+          "content": "Ты агент с инструментами своего MCP-сервера «репозиторий GitHub». Если нужны коммиты, файлы или сведения о репозитории, вызови инструмент. Не выдумывай sha, сообщения коммитов и содержимое файлов. После результата инструмента ответь пользователю обычным текстом и опирайся только на него. Доступные инструменты: repo_info, list_commits, get_file."
         },
         {
           "role": "user",
-          "content": "Какой статус у заказа ORD-1001 и какая у него сумма? Не выдумывай данные, возьми их инструментом трекера."
+          "content": "Что делали в последних трёх коммитах репозитория? Не выдумывай sha и сообщения, возьми их инструментом."
         }
       ],
       "tools": [
         {
           "type": "function",
           "function": {
-            "name": "get_order",
-            "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+            "name": "repo_info",
+            "description": "Возвращает сведения о репозитории GitHub: полное имя, описание, ветку по умолчанию, число открытых issues и ссылку. По умолчанию это mmoshkina3-ui/ai-advent-challenge-10.",
             "parameters": {
               "type": "object",
               "properties": {
-                "order_id": {
-                  "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
-                  "title": "Order Id",
-                  "type": "string"
-                }
-              },
-              "required": [
-                "order_id"
-              ],
-              "title": "get_orderArguments"
-            }
-          }
-        },
-        {
-          "type": "function",
-          "function": {
-            "name": "list_orders",
-            "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "status": {
+                "owner": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -181,11 +428,155 @@
                     }
                   ],
                   "default": null,
-                  "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
-                  "title": "Status"
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
                 }
               },
-              "title": "list_ordersArguments"
+              "title": "repo_infoArguments"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "list_commits",
+            "description": "Возвращает последние коммиты репозитория: короткий sha, сообщение, автор и дата. Можно ограничить число и отфильтровать по пути файла или папки.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "default": 5,
+                  "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+                  "title": "Limit",
+                  "type": "integer"
+                },
+                "path": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Необязательный фильтр: путь файла или папки, например day16.",
+                  "title": "Path"
+                },
+                "ref": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                  "title": "Ref"
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
+                }
+              },
+              "title": "list_commitsArguments"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_file",
+            "description": "Читает файл из репозитория по пути, например day16/report.md. Если путь указывает на папку, возвращает список элементов. Длинный файл обрезается. Не выдумывай содержимое — сначала вызови этот инструмент.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+                  "title": "Path",
+                  "type": "string"
+                },
+                "ref": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                  "title": "Ref"
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
+                }
+              },
+              "required": [
+                "path"
+              ],
+              "title": "get_fileArguments"
             }
           }
         }
@@ -197,30 +588,12 @@
       "max_tokens": 800,
       "tool_excerpt": [
         {
-          "name": "get_order",
-          "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+          "name": "repo_info",
+          "description": "Возвращает сведения о репозитории GitHub: полное имя, описание, ветку по умолчанию, число открытых issues и ссылку. По умолчанию это mmoshkina3-ui/ai-advent-challenge-10.",
           "parameters": {
             "type": "object",
             "properties": {
-              "order_id": {
-                "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
-                "title": "Order Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "order_id"
-            ],
-            "title": "get_orderArguments"
-          }
-        },
-        {
-          "name": "list_orders",
-          "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
-          "parameters": {
-            "type": "object",
-            "properties": {
-              "status": {
+              "owner": {
                 "anyOf": [
                   {
                     "type": "string"
@@ -230,14 +603,552 @@
                   }
                 ],
                 "default": null,
-                "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
-                "title": "Status"
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
               }
             },
-            "title": "list_ordersArguments"
+            "title": "repo_infoArguments"
+          }
+        },
+        {
+          "name": "list_commits",
+          "description": "Возвращает последние коммиты репозитория: короткий sha, сообщение, автор и дата. Можно ограничить число и отфильтровать по пути файла или папки.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "default": 5,
+                "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+                "title": "Limit",
+                "type": "integer"
+              },
+              "path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Необязательный фильтр: путь файла или папки, например day16.",
+                "title": "Path"
+              },
+              "ref": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                "title": "Ref"
+              },
+              "owner": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
+              }
+            },
+            "title": "list_commitsArguments"
+          }
+        },
+        {
+          "name": "get_file",
+          "description": "Читает файл из репозитория по пути, например day16/report.md. Если путь указывает на папку, возвращает список элементов. Длинный файл обрезается. Не выдумывай содержимое — сначала вызови этот инструмент.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+                "title": "Path",
+                "type": "string"
+              },
+              "ref": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                "title": "Ref"
+              },
+              "owner": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "get_fileArguments"
           }
         }
       ]
-    }
+    },
+    "chose_list_commits": true,
+    "correct_args": true,
+    "expected_shas": [
+      "192eb47",
+      "59b435d",
+      "5f0aeb9"
+    ],
+    "expected_messages": [
+      "Add the day 17 agent with our own MCP server around a local order API.",
+      "Add the day 16 agent with tools from a public MCP server.",
+      "Add the day 15 agent with memory updates and conflict resolution."
+    ],
+    "sha_in_answer": [
+      "192eb47",
+      "59b435d",
+      "5f0aeb9"
+    ],
+    "answer_uses_result": true
+  },
+  "file_task": {
+    "input": "Какие инструменты упоминаются в файле day16/report.md? Не выдумывай содержимое, прочитай файл инструментом.",
+    "trace": [
+      "Шаг 1: [mcp] get_file({\"path\": \"day16/report.md\"}) -> {\n  \"type\": \"file\",\n  \"path\": \"day16/report.md\",\n  \"ref\": null,\n  \"sha\": \"3d4afb2\",\n  \"size\": 8501,\n  \"truncated\": false,\n  \"content\": \"# День 16. Подключение MCP\\n\\nАгент дня 6 ходит в модель тем же циклом: запрос, вызов инструмента, возврат результата, снова запрос. К этому циклу подключён готовый MCP-сервер `@modelcontextprotocol/server-filesystem` (версия сервера в прогоне — 2.4.0, имя `secure-filesystem-server`). Клиент — пакет Python `mcp`. Соединение идёт по stdio: код запускает `npx -y @modelcontextprotocol/server-filesystem <песочница>` и забирает список инструментов. Песочница — папка `day16/sandbox`.\\n\\nЛокальные инструменты дня 6 остались своими функциями: `get_current_time`, `calculate`, `convert_usd_to_rub`. Инструменты MCP мы не писали: их схемы приходят с сервера, а вызов идёт через `Client.call_tool`.\\n\\n## Как запустить\\n\\nНужны Python 3 и пакет клиента, плюс Node.js, потому что готовый сервер запускается через `npx`.\\n\\n```powershell\\npip install mcp\\n# или: pip install -r day16/requirements.txt\\n```\\n\\nNode.js LTS — с https://nodejs.org/. После установки в том же терминале должны работать:\\n\\n```powershell\\npython --version\\nnpx -v\\n```\\n\\nНа Windows команда называется `npx.cmd`; код ищет её сам. Первый запуск скачивает пакет сервера в кэш npm, для этого нужен интернет:\\n\\n```powershell\\nnpx -y @modelcontextprotocol/server-filesystem day16\\\\sandbox\\n```\\n\\nДальше сервер поднимает сам агент. Примеры:\\n\\n```powershell\\ncd day16\\npython agent.py Какие файлы есть в песочнице и что в notes.txt?\\npython agent.py --mixed Прочитай order.txt и посчитай итог заказа\\n```\\n\\nФлаг `--mixed` оставляет в запросе только локальный `calculate` и MCP-инструмент `read_text_file` и печатает тело запроса к модели (без ключа и заголовков).\\n\\nНа странице http://127.0.0.1:8765/ день 16 подключает тот же сервер. Если `mcp` или `npx` не найдены, страница не падает, а показывает, чего не хватает.\\n\\n## Результаты\\n\\nМодель deepseek-flash. MCP-соединение установилось, сервер вернул 16 инструментов: `read_file`, `read_text_file`, `read_media_file`, `read_multiple_files`, `write_file`, `append_file`, `edit_file`, `create_directory`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `move_file`, `copy_file`, `search_files`, `get_file_info`, `list_allowed_directories`.\\n\\n### Задача только через MCP\\n\\n«Какие файлы в песочнице и что написано в notes.txt?»\\n\\n| Шаг | Источник | Вызов | Результат |\\n| --- | --- | --- | --- |\\n| 1 | MCP | `list_allowed_directories` | путь песочницы |\\n| 1 | MCP | `list_directory` | notes.txt, order.txt |\\n| 2 | MCP | `read_text_file` для notes.txt | проект «оплата заказов», ответственный Максим, пометка что файл из MCP |\\n| 2 | MCP | `read_text_file` для order.txt | позиции 17, цена 23, доставка 8 |\\n\\nОтвет модели повторил оба файла и содержимое `notes.txt` слово в слово. Все вызовы — инструменты, которые мы не писали.\\n\\n### Смешанный набор\\n\\nВ запрос к модели одновременно попали один локальный инструмент дня 6 (`calculate`) и один MCP (`read_text_file`). Задача: прочитать `order.txt` и посчитать итог (количество × цена + доставка).\\n\\n| Шаг | Источник | Вызов | Результат |\\n| --- | --- | --- | --- |\\n| 1 | MCP | `read_text_file(.../order.txt)` | 17, 23, 8 |\\n| 2 | local | `calculate((17 * 23) + 8)` | 399 |\\n| 3 | — | ответ текстом | «Итог заказа: 399» |\\n\\nОба инструмента понадобились, итог верный. В теле первого запроса (оно лежит в `runs.json` и печатается проверкой) нет ключа и заголовков. В массиве `tools` две одинаковые по форме схемы `function`: `calculate` и `read_text_file`. Различие «локальный / MCP» в этом JSON не размечено — его знает только наш реестр `sources`.\\n\\n## Ответы на вопросы\\n\\n### Как модель различает локальный инструмент и MCP-инструмент?\\n\\nНикак. В запросе оба выглядят одинаково: объект `{ \\\"type\\\": \\\"function\\\", \\\"function\\\": { \\\"name\\\", \\\"description\\\", \\\"parameters\\\" } }`. Модель выбирает имя и аргументы. Кто исполнитель, решает наш диспетчер: в реестре у `calculate` стоит `local` — вызывается функция дня 6, у `read_text_file` стоит `mcp` — вызов уходит в `Client.call_tool`. В трассировке мы подписываем источник, чтобы это было видно в отчёте, но до модели эта подпись не доезжает как отдельное поле схемы.\\n\\n### Что изменилось в коде при переходе на MCP?\\n\\nЦикл агента тот же, что в дне 6. Добавились четыре вещи. Первая — установка соединения: запуск готового сервера и `list_tools`. Вторая — перевод схем MCP (`inputSchema`) в формат `tools[]`, который ждёт DeepSeek. Третья — диспетчер по реестру источников вместо одного словаря локальных функций. Четвёртая — печать тела запроса к модели без ключа. Локальный `calculate` не переписывался.\\n\\n### Зачем тогда нужен MCP?\\n\\nЧтобы не писать каждый инструмент самим и не привязывать агента к одной библиотеке. Сервер файловой системы, git или браузера говорит на одном протоколе, отдаёт список инструментов и выполняет вызов. Агенту достаточно уметь подключиться и вызвать инструмент по имени. Сервер можно заменить, цикл агента остаётся тем же. В этом дне агент прочитал файлы инструментом, которого в репозитории нет: его дал публичный `@modelcontextprotocol/server-filesystem`.\\n\\n## Что нашлось по ходу\\n\\nВ смешанной задаче модель не стала перечислять каталог и сразу прочитала `order.txt` по пути из системного промпта. В задаче «только MCP» она сначала спросила у сервера список разрешённых папок.\\n\\nИтог заказа — 399, не 391: 17 × 23 = 391, плюс доставка 8.\\n\\nПервый запуск `npx -y` может занять время и требует сети. Если пакета `mcp` или `npx` нет, агент и страница не падают молча, а объясняют, что поставить. Файловый сервер видит только папку `sandbox`, пути снаружи он отвергнет.\\n\\nЗапуск:\\n\\n```powershell\\npip install mcp\\npython -m unittest test_mcp.py\\npython check_mcp.py\\npython agent.py --mixed Прочитай order.txt и посчитай итог\\n```\\n\",\n  \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/blob/main/day16/report.md\",\n  \"owner\": \"mmoshkina3-ui\",\n  \"repo\": \"ai-advent-challenge-10\",\n  \"binary\": false\n}",
+      "Шаг 2: ответ без инструментов"
+    ],
+    "calls": [
+      {
+        "step": 1,
+        "name": "get_file",
+        "source": "mcp",
+        "arguments": "{\"path\": \"day16/report.md\"}",
+        "result": "{\n  \"type\": \"file\",\n  \"path\": \"day16/report.md\",\n  \"ref\": null,\n  \"sha\": \"3d4afb2\",\n  \"size\": 8501,\n  \"truncated\": false,\n  \"content\": \"# День 16. Подключение MCP\\n\\nАгент дня 6 ходит в модель тем же циклом: запрос, вызов инструмента, возврат результата, снова запрос. К этому циклу подключён готовый MCP-сервер `@modelcontextprotocol/server-filesystem` (версия сервера в прогоне — 2.4.0, имя `secure-filesystem-server`). Клиент — пакет Python `mcp`. Соединение идёт по stdio: код запускает `npx -y @modelcontextprotocol/server-filesystem <песочница>` и забирает список инструментов. Песочница — папка `day16/sandbox`.\\n\\nЛокальные инструменты дня 6 остались своими функциями: `get_current_time`, `calculate`, `convert_usd_to_rub`. Инструменты MCP мы не писали: их схемы приходят с сервера, а вызов идёт через `Client.call_tool`.\\n\\n## Как запустить\\n\\nНужны Python 3 и пакет клиента, плюс Node.js, потому что готовый сервер запускается через `npx`.\\n\\n```powershell\\npip install mcp\\n# или: pip install -r day16/requirements.txt\\n```\\n\\nNode.js LTS — с https://nodejs.org/. После установки в том же терминале должны работать:\\n\\n```powershell\\npython --version\\nnpx -v\\n```\\n\\nНа Windows команда называется `npx.cmd`; код ищет её сам. Первый запуск скачивает пакет сервера в кэш npm, для этого нужен интернет:\\n\\n```powershell\\nnpx -y @modelcontextprotocol/server-filesystem day16\\\\sandbox\\n```\\n\\nДальше сервер поднимает сам агент. Примеры:\\n\\n```powershell\\ncd day16\\npython agent.py Какие файлы есть в песочнице и что в notes.txt?\\npython agent.py --mixed Прочитай order.txt и посчитай итог заказа\\n```\\n\\nФлаг `--mixed` оставляет в запросе только локальный `calculate` и MCP-инструмент `read_text_file` и печатает тело запроса к модели (без ключа и заголовков).\\n\\nНа странице http://127.0.0.1:8765/ день 16 подключает тот же сервер. Если `mcp` или `npx` не найдены, страница не падает, а показывает, чего не хватает.\\n\\n## Результаты\\n\\nМодель deepseek-flash. MCP-соединение установилось, сервер вернул 16 инструментов: `read_file`, `read_text_file`, `read_media_file`, `read_multiple_files`, `write_file`, `append_file`, `edit_file`, `create_directory`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `move_file`, `copy_file`, `search_files`, `get_file_info`, `list_allowed_directories`.\\n\\n### Задача только через MCP\\n\\n«Какие файлы в песочнице и что написано в notes.txt?»\\n\\n| Шаг | Источник | Вызов | Результат |\\n| --- | --- | --- | --- |\\n| 1 | MCP | `list_allowed_directories` | путь песочницы |\\n| 1 | MCP | `list_directory` | notes.txt, order.txt |\\n| 2 | MCP | `read_text_file` для notes.txt | проект «оплата заказов», ответственный Максим, пометка что файл из MCP |\\n| 2 | MCP | `read_text_file` для order.txt | позиции 17, цена 23, доставка 8 |\\n\\nОтвет модели повторил оба файла и содержимое `notes.txt` слово в слово. Все вызовы — инструменты, которые мы не писали.\\n\\n### Смешанный набор\\n\\nВ запрос к модели одновременно попали один локальный инструмент дня 6 (`calculate`) и один MCP (`read_text_file`). Задача: прочитать `order.txt` и посчитать итог (количество × цена + доставка).\\n\\n| Шаг | Источник | Вызов | Результат |\\n| --- | --- | --- | --- |\\n| 1 | MCP | `read_text_file(.../order.txt)` | 17, 23, 8 |\\n| 2 | local | `calculate((17 * 23) + 8)` | 399 |\\n| 3 | — | ответ текстом | «Итог заказа: 399» |\\n\\nОба инструмента понадобились, итог верный. В теле первого запроса (оно лежит в `runs.json` и печатается проверкой) нет ключа и заголовков. В массиве `tools` две одинаковые по форме схемы `function`: `calculate` и `read_text_file`. Различие «локальный / MCP» в этом JSON не размечено — его знает только наш реестр `sources`.\\n\\n## Ответы на вопросы\\n\\n### Как модель различает локальный инструмент и MCP-инструмент?\\n\\nНикак. В запросе оба выглядят одинаково: объект `{ \\\"type\\\": \\\"function\\\", \\\"function\\\": { \\\"name\\\", \\\"description\\\", \\\"parameters\\\" } }`. Модель выбирает имя и аргументы. Кто исполнитель, решает наш диспетчер: в реестре у `calculate` стоит `local` — вызывается функция дня 6, у `read_text_file` стоит `mcp` — вызов уходит в `Client.call_tool`. В трассировке мы подписываем источник, чтобы это было видно в отчёте, но до модели эта подпись не доезжает как отдельное поле схемы.\\n\\n### Что изменилось в коде при переходе на MCP?\\n\\nЦикл агента тот же, что в дне 6. Добавились четыре вещи. Первая — установка соединения: запуск готового сервера и `list_tools`. Вторая — перевод схем MCP (`inputSchema`) в формат `tools[]`, который ждёт DeepSeek. Третья — диспетчер по реестру источников вместо одного словаря локальных функций. Четвёртая — печать тела запроса к модели без ключа. Локальный `calculate` не переписывался.\\n\\n### Зачем тогда нужен MCP?\\n\\nЧтобы не писать каждый инструмент самим и не привязывать агента к одной библиотеке. Сервер файловой системы, git или браузера говорит на одном протоколе, отдаёт список инструментов и выполняет вызов. Агенту достаточно уметь подключиться и вызвать инструмент по имени. Сервер можно заменить, цикл агента остаётся тем же. В этом дне агент прочитал файлы инструментом, которого в репозитории нет: его дал публичный `@modelcontextprotocol/server-filesystem`.\\n\\n## Что нашлось по ходу\\n\\nВ смешанной задаче модель не стала перечислять каталог и сразу прочитала `order.txt` по пути из системного промпта. В задаче «только MCP» она сначала спросила у сервера список разрешённых папок.\\n\\nИтог заказа — 399, не 391: 17 × 23 = 391, плюс доставка 8.\\n\\nПервый запуск `npx -y` может занять время и требует сети. Если пакета `mcp` или `npx` нет, агент и страница не падают молча, а объясняют, что поставить. Файловый сервер видит только папку `sandbox`, пути снаружи он отвергнет.\\n\\nЗапуск:\\n\\n```powershell\\npip install mcp\\npython -m unittest test_mcp.py\\npython check_mcp.py\\npython agent.py --mixed Прочитай order.txt и посчитай итог\\n```\\n\",\n  \"html_url\": \"https://github.com/mmoshkina3-ui/ai-advent-challenge-10/blob/main/day16/report.md\",\n  \"owner\": \"mmoshkina3-ui\",\n  \"repo\": \"ai-advent-challenge-10\",\n  \"binary\": false\n}"
+      }
+    ],
+    "answer": "В файле `day16/report.md` упоминаются следующие инструменты:\n\n**MCP-сервер и клиент**\n- `@modelcontextprotocol/server-filesystem` (версия 2.4.0, имя `secure-filesystem-server`) — готовый MCP-сервер, запускается через `npx -y @modelcontextprotocol/server-filesystem <песочница>`\n- Python-пакет `mcp` — клиент, вызов через `Client.call_tool`, получение списка через `list_tools`\n\n**Локальные инструменты дня 6 (свои функции)**\n- `get_current_time`\n- `calculate`\n- `convert_usd_to_rub`\n\n**16 инструментов, которые вернул сервер**\n`read_file`, `read_text_file`, `read_media_file`, `read_multiple_files`, `write_file`, `append_file`, `edit_file`, `create_directory`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `move_file`, `copy_file`, `search_files`, `get_file_info`, `list_allowed_directories`\n\n**Прочее из текста**\n- `npx` / `npx.cmd` — средство запуска сервера (нужен Node.js)\n- Модель — deepseek-flash; упоминаются файлы `runs.json`, `agent.py`, `test_mcp.py`, `check_mcp.py`, `requirements.txt`, папка `day16/sandbox`, а также реестр источников `sources` (не инструмент, а внутренний механизм диспетчера).",
+    "tools_called": [
+      "get_file"
+    ],
+    "request_body": {
+      "model": "deepseek-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Ты агент с инструментами своего MCP-сервера «репозиторий GitHub». Если нужны коммиты, файлы или сведения о репозитории, вызови инструмент. Не выдумывай sha, сообщения коммитов и содержимое файлов. После результата инструмента ответь пользователю обычным текстом и опирайся только на него. Доступные инструменты: repo_info, list_commits, get_file."
+        },
+        {
+          "role": "user",
+          "content": "Какие инструменты упоминаются в файле day16/report.md? Не выдумывай содержимое, прочитай файл инструментом."
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "repo_info",
+            "description": "Возвращает сведения о репозитории GitHub: полное имя, описание, ветку по умолчанию, число открытых issues и ссылку. По умолчанию это mmoshkina3-ui/ai-advent-challenge-10.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
+                }
+              },
+              "title": "repo_infoArguments"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "list_commits",
+            "description": "Возвращает последние коммиты репозитория: короткий sha, сообщение, автор и дата. Можно ограничить число и отфильтровать по пути файла или папки.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "default": 5,
+                  "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+                  "title": "Limit",
+                  "type": "integer"
+                },
+                "path": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Необязательный фильтр: путь файла или папки, например day16.",
+                  "title": "Path"
+                },
+                "ref": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                  "title": "Ref"
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
+                }
+              },
+              "title": "list_commitsArguments"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_file",
+            "description": "Читает файл из репозитория по пути, например day16/report.md. Если путь указывает на папку, возвращает список элементов. Длинный файл обрезается. Не выдумывай содержимое — сначала вызови этот инструмент.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+                  "title": "Path",
+                  "type": "string"
+                },
+                "ref": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                  "title": "Ref"
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                  "title": "Owner"
+                },
+                "repo": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                  "title": "Repo"
+                }
+              },
+              "required": [
+                "path"
+              ],
+              "title": "get_fileArguments"
+            }
+          }
+        }
+      ],
+      "thinking": {
+        "type": "disabled"
+      },
+      "temperature": 0,
+      "max_tokens": 800,
+      "tool_excerpt": [
+        {
+          "name": "repo_info",
+          "description": "Возвращает сведения о репозитории GitHub: полное имя, описание, ветку по умолчанию, число открытых issues и ссылку. По умолчанию это mmoshkina3-ui/ai-advent-challenge-10.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
+              }
+            },
+            "title": "repo_infoArguments"
+          }
+        },
+        {
+          "name": "list_commits",
+          "description": "Возвращает последние коммиты репозитория: короткий sha, сообщение, автор и дата. Можно ограничить число и отфильтровать по пути файла или папки.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "default": 5,
+                "description": "Сколько коммитов вернуть, от 1 до 30. По умолчанию 5.",
+                "title": "Limit",
+                "type": "integer"
+              },
+              "path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Необязательный фильтр: путь файла или папки, например day16.",
+                "title": "Path"
+              },
+              "ref": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                "title": "Ref"
+              },
+              "owner": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
+              }
+            },
+            "title": "list_commitsArguments"
+          }
+        },
+        {
+          "name": "get_file",
+          "description": "Читает файл из репозитория по пути, например day16/report.md. Если путь указывает на папку, возвращает список элементов. Длинный файл обрезается. Не выдумывай содержимое — сначала вызови этот инструмент.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "description": "Путь к файлу или папке в репозитории, например day16/report.md или day16.",
+                "title": "Path",
+                "type": "string"
+              },
+              "ref": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Ветка, тег или sha. Если не указан, берётся ветка по умолчанию.",
+                "title": "Ref"
+              },
+              "owner": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Владелец репозитория. Если не указан, берётся значение по умолчанию.",
+                "title": "Owner"
+              },
+              "repo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Имя репозитория. Если не указано, берётся значение по умолчанию.",
+                "title": "Repo"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "get_fileArguments"
+          }
+        }
+      ]
+    },
+    "chose_get_file": true,
+    "correct_args": true,
+    "names_in_answer": [
+      "read_text_file",
+      "list_directory",
+      "calculate",
+      "MCP"
+    ],
+    "answer_uses_result": true
   }
 }

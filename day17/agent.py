@@ -2,8 +2,9 @@
 
 Клиент и диспетчер — те же, что в дне 16: соединение по stdio, схемы инструментов
 в запросе к модели, модель выбирает имя и аргументы, код вызывает MCP и возвращает
-результат. Отличие: сервер свой, запускается тем же интерпретатором Python
-(`sys.executable`), без npx. Инструменты ходят в локальный HTTP API трекера заказов.
+результат. Сервер свой, запускается тем же интерпретатором Python (`sys.executable`),
+без npx. Инструменты ходят в настоящий GitHub REST API публичного репозитория
+mmoshkina3-ui/ai-advent-challenge-10. Токен не обязателен.
 """
 
 from __future__ import annotations
@@ -22,6 +23,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import github_api  # noqa: E402
 SERVER_PATH = ROOT / "server.py"
 API_URL = "https://api.deepseek.com/chat/completions"
 DEFAULT_MODEL = "deepseek-flash"
@@ -39,6 +44,9 @@ def load_settings() -> tuple[str, str]:
                 continue
             name, value = line.split("=", 1)
             env.setdefault(name.strip(), value.strip().strip('"').strip("'"))
+    import github_api
+
+    github_api.load_env()
     for name in ("DEEPSEEK_API_KEY", "LLM_MODEL"):
         if os.environ.get(name):
             env[name] = os.environ[name]
@@ -55,8 +63,9 @@ class McpError(RuntimeError):
 def install_hint() -> str:
     return (
         "Чтобы запустить свой MCP-сервер дня 17, нужен пакет Python: pip install -U \"mcp>=2\". "
-        "Сервер стартует тем же интерпретатором, что и агент (sys.executable), "
-        "и сам поднимает локальный HTTP API трекера заказов. Node.js не нужен."
+        "Сервер стартует тем же интерпретатором, что и агент (sys.executable), и ходит "
+        "в GitHub REST API. Для публичного репозитория токен не нужен; необязательный "
+        "GITHUB_TOKEN только поднимает лимит запросов. Node.js не нужен, нужен интернет."
     )
 
 
@@ -131,9 +140,10 @@ def tool_schema_view(tool: Any) -> dict:
 class McpBridge:
     """Долгоживущее stdio-соединение со своим MCP-сервером (sys.executable server.py)."""
 
-    def __init__(self, command: str | None = None, args: list[str] | None = None) -> None:
+    def __init__(self, command: str | None = None, args: list[str] | None = None, env: dict[str, str] | None = None) -> None:
         self.command = command or sys.executable
         self.args = args if args is not None else [str(SERVER_PATH)]
+        self.env = env
         self.tools: list[Any] = []
         self.server_name = ""
         self.error: str | None = None
@@ -148,6 +158,7 @@ class McpBridge:
             if self._client is not None:
                 return self
             ensure_mcp()
+            github_api.load_env()
             if not Path(self.command).exists() and not self.command:
                 raise McpError(f"Не найден интерпретатор для MCP-сервера.\n{install_hint()}")
             if not SERVER_PATH.exists():
@@ -184,9 +195,11 @@ class McpBridge:
     def summary(self) -> dict:
         return {
             "connected": self._client is not None,
-            "server": self.server_name or "order-tracker",
+            "server": self.server_name or "github-repo",
             "command": self.command,
             "args": self.args,
+            "api": github_api.api_url(),
+            "repository": f"{github_api.owner()}/{github_api.repo()}",
             "tools": [tool_schema_view(tool) for tool in self.tools],
             "error": self.error,
         }
@@ -220,12 +233,13 @@ class McpBridge:
             command=self.command,
             args=self.args,
             cwd=str(ROOT),
+            env=self.env,
         )
         stack = AsyncExitStack()
         client = await stack.enter_async_context(Client(params))
         listed = await client.list_tools()
         info = getattr(client, "server_info", None)
-        self.server_name = getattr(info, "name", "") or "order-tracker"
+        self.server_name = getattr(info, "name", "") or "github-repo"
         self._stack = stack
         self._client = client
         self.tools = list(listed.tools)
@@ -279,8 +293,9 @@ class Agent:
             {
                 "role": "system",
                 "content": (
-                    "Ты агент с инструментами своего MCP-сервера «трекер заказов». "
-                    "Если нужны данные о заказе, вызови инструмент. Не выдумывай статус, сумму и состав заказа. "
+                    "Ты агент с инструментами своего MCP-сервера «репозиторий GitHub». "
+                    "Если нужны коммиты, файлы или сведения о репозитории, вызови инструмент. "
+                    "Не выдумывай sha, сообщения коммитов и содержимое файлов. "
                     "После результата инструмента ответь пользователю обычным текстом и опирайся только на него. "
                     f"Доступные инструменты: {names}."
                 ),

@@ -1,0 +1,243 @@
+{
+  "model": "deepseek-flash",
+  "connection": {
+    "ok": true,
+    "server": "order-tracker",
+    "command": "/workspace/.venv-mcp/bin/python",
+    "args": [
+      "/workspace/repos/ai-advent-challenge-10/day17/server.py"
+    ],
+    "tools": [
+      "get_order",
+      "list_orders"
+    ],
+    "tool_count": 2,
+    "schemas": [
+      {
+        "name": "get_order",
+        "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "order_id"
+          ],
+          "title": "get_orderArguments"
+        },
+        "required": [
+          "order_id"
+        ],
+        "properties": {
+          "order_id": {
+            "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
+            "title": "Order Id",
+            "type": "string"
+          }
+        },
+        "source": "mcp"
+      },
+      {
+        "name": "list_orders",
+        "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
+              "title": "Status"
+            }
+          },
+          "title": "list_ordersArguments"
+        },
+        "required": [],
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
+            "title": "Status"
+          }
+        },
+        "source": "mcp"
+      }
+    ]
+  },
+  "direct_call": {
+    "tool": "get_order",
+    "arguments": {
+      "order_id": "ORD-1001"
+    },
+    "result": {
+      "order": {
+        "id": "ORD-1001",
+        "customer": "Максим",
+        "status": "оплачен",
+        "items": [
+          {
+            "title": "Позиции заказа в магазине",
+            "qty": 17,
+            "price": 23
+          }
+        ],
+        "delivery": 8,
+        "total": 399,
+        "currency": "RUB",
+        "created": "2026-11-20"
+      }
+    },
+    "ok": true
+  },
+  "agent": {
+    "input": "Какой статус у заказа ORD-1001 и какая у него сумма? Не выдумывай данные, возьми их инструментом трекера.",
+    "trace": [
+      "Шаг 1: [mcp] get_order({\"order_id\": \"ORD-1001\"}) -> {\n  \"order\": {\n    \"id\": \"ORD-1001\",\n    \"customer\": \"Максим\",\n    \"status\": \"оплачен\",\n    \"items\": [\n      {\n        \"title\": \"Позиции заказа в магазине\",\n        \"qty\": 17,\n        \"price\": 23\n      }\n    ],\n    \"delivery\": 8,\n    \"total\": 399,\n    \"currency\": \"RUB\",\n    \"created\": \"2026-11-20\"\n  }\n}",
+      "Шаг 2: ответ без инструментов"
+    ],
+    "calls": [
+      {
+        "step": 1,
+        "name": "get_order",
+        "source": "mcp",
+        "arguments": "{\"order_id\": \"ORD-1001\"}",
+        "result": "{\n  \"order\": {\n    \"id\": \"ORD-1001\",\n    \"customer\": \"Максим\",\n    \"status\": \"оплачен\",\n    \"items\": [\n      {\n        \"title\": \"Позиции заказа в магазине\",\n        \"qty\": 17,\n        \"price\": 23\n      }\n    ],\n    \"delivery\": 8,\n    \"total\": 399,\n    \"currency\": \"RUB\",\n    \"created\": \"2026-11-20\"\n  }\n}"
+      }
+    ],
+    "answer": "Заказ ORD-1001 (покупатель Максим):\n\n- **Статус:** оплачен\n- **Сумма:** 399 RUB (включая доставку 8 RUB)\n- **Состав:** 17 позиций по 23 RUB\n- **Создан:** 2026-11-20",
+    "chose_get_order": true,
+    "correct_args": true,
+    "tool_returned_order": true,
+    "answer_uses_result": true,
+    "request_body": {
+      "model": "deepseek-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Ты агент с инструментами своего MCP-сервера «трекер заказов». Если нужны данные о заказе, вызови инструмент. Не выдумывай статус, сумму и состав заказа. После результата инструмента ответь пользователю обычным текстом и опирайся только на него. Доступные инструменты: get_order, list_orders."
+        },
+        {
+          "role": "user",
+          "content": "Какой статус у заказа ORD-1001 и какая у него сумма? Не выдумывай данные, возьми их инструментом трекера."
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_order",
+            "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "order_id": {
+                  "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
+                  "title": "Order Id",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "order_id"
+              ],
+              "title": "get_orderArguments"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "list_orders",
+            "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
+                  "title": "Status"
+                }
+              },
+              "title": "list_ordersArguments"
+            }
+          }
+        }
+      ],
+      "thinking": {
+        "type": "disabled"
+      },
+      "temperature": 0,
+      "max_tokens": 800,
+      "tool_excerpt": [
+        {
+          "name": "get_order",
+          "description": "Возвращает заказ из трекера по идентификатору: статус, покупатель, позиции, доставка и сумма. Не выдумывай заказ — сначала вызови этот инструмент.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "description": "Идентификатор заказа, например ORD-1001. Регистр не важен.",
+                "title": "Order Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "order_id"
+            ],
+            "title": "get_orderArguments"
+          }
+        },
+        {
+          "name": "list_orders",
+          "description": "Возвращает список заказов из трекера: идентификатор, покупатель, статус и сумма. Можно отфильтровать по статусу.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Необязательный фильтр статуса. Допустимые значения: оплачен, в доставке, отменён. Если не указан, вернутся все заказы.",
+                "title": "Status"
+              }
+            },
+            "title": "list_ordersArguments"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+.env
+*.db
+ui-*.json
+runs-offline.json
+__pycache__/
+*.pyc
